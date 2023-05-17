@@ -95,3 +95,136 @@ FROM PortfolioProject..CovidDeaths
 WHERE continent is not NULL
 HAVING SUM(new_cases)*1.0 > 0
 ORDER BY 1,2
+
+
+--JOINS
+
+SELECT *
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+
+
+--Looking at total population vs vaccinations
+
+SELECT CovDea.continent,
+		CovDea.location,
+		CovDea.date,
+		CovDea.population,
+		CovVac.new_vaccinations
+
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+WHERE CovDea.continent is not NULL
+ORDER BY 2,3
+
+
+-- Vacations per location
+
+SELECT CovDea.continent,
+		CovDea.location,
+		CovDea.date,
+		CovDea.population,
+		CovVac.new_vaccinations,
+		SUM(CAST(CovVac.new_vaccinations AS int)) OVER (PARTITION BY CovDea.Location
+														ORDER BY CovDea.Location) AS RollingPeopleVaccinated
+
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+WHERE CovDea.continent is not NULL
+ORDER BY 2,3
+
+
+-- Population VS Vaccination
+
+WITH PopvsVac (Continent,
+				location,
+				Date,
+				population,
+				new_vaccinations,
+				RollingPeopleVaccinated)
+AS
+(SELECT CovDea.continent,
+		CovDea.location,
+		CovDea.date,
+		CovDea.population,
+		CovVac.new_vaccinations,
+		SUM(CAST(CovVac.new_vaccinations AS int)) OVER (PARTITION BY CovDea.Location
+														ORDER BY CovDea.Location, 
+																 CovDea.Date) AS RollingPeopleVaccinated
+
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+WHERE CovDea.continent is not NULL
+--ORDER BY 2,3
+)
+SELECT *, (RollingPeopleVaccinated/population)*100
+FROM PopvsVac
+
+
+
+--Temp Table
+
+DROP TABLE IF Exists #PercentPopulationVaccinated
+CREATE TABLE #PercentPopulationVaccinated
+(
+Continent nvarchar(255),
+location nvarchar(255),
+date datetime,
+population numeric,
+new_vaccinations numeric,
+RollingPeopleVaccinated numeric
+)
+
+INSERT INTO #PercentPopulationVaccinated
+SELECT CovDea.continent,
+		CovDea.location,
+		CovDea.date,
+		CovDea.population,
+		Convert(bigint, CovVac.new_vaccinations),
+		SUM(Convert(bigint, CovVac.new_vaccinations)) OVER (PARTITION BY CovDea.Location
+														ORDER BY CovDea.Location, 
+																 CovDea.Date) AS RollingPeopleVaccinated
+
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+--WHERE CovDea.continent is not NULL
+--ORDER BY 2,3
+
+SELECT *, (RollingPeopleVaccinated/population)*100
+FROM #PercentPopulationVaccinated
+
+
+--Creating view to store data for later visualizations
+
+CREATE VIEW PercentPopulationVaccinated AS
+SELECT CovDea.continent,
+		CovDea.location,
+		CovDea.date,
+		CovDea.population,
+		CovVac.new_vaccinations,
+		SUM(Convert(bigint, CovVac.new_vaccinations)) OVER (PARTITION BY CovDea.Location
+														ORDER BY CovDea.Location, 
+																 CovDea.Date) AS RollingPeopleVaccinated
+
+FROM PortfolioProject..CovidDeaths CovDea
+JOIN PortfolioProject..CovidVaccinations CovVac
+	ON CovDea.location = CovVac.location
+	AND CovDea.date = CovVac.date
+WHERE CovDea.continent is not NULL
+--ORDER BY 2,3
+
+
+SELECT *
+FROM PercentPopulationVaccinated
+
+
