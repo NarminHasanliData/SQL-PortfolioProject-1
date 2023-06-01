@@ -1,16 +1,18 @@
 # SQL-PortfolioProject-1
-AlexTheAnalyst Bootcamp
+## AlexTheAnalyst Bootcamp
 
 **DATA EXPLORATION**
 *Data Source is:
 https://ourworldindata.org/covid-deaths*
 
+
 -- I had a problem with importing CSV file into Microsoft SQL SMS. I have imported file as a flat file from Tasks.
   Checked the boxes that the columns can have Null values.--
 
+``` sql
 SELECT *
 FROM PortfolioProject..CovidDeaths
-ORDER BY 3,4
+ORDER BY 3,4  ```
 
 --SELECT *
 --FROM PortfolioProject..CovidVaccinations
@@ -226,5 +228,3 @@ WHERE CovDea.continent is not NULL
 
 SELECT *
 FROM PercentPopulationVaccinated
-
-
