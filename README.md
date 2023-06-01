@@ -29,8 +29,7 @@ ORDER BY 1,2
 
 -- Total Cases vs Total Deaths
 -- Percentage of dying in my country from COVID
--- Here in division the result showed either Null or zero. I have found a solution to multiply column names 'Total_deaths' and 'Total_cases' by 1.0.
-  After this the division worked and showed the right answers
+-- Here in division the result showed either Null or zero. I have found a solution to multiply column names 'Total_deaths' and 'Total_cases' by 1.0. After this the division worked and showed the right answers
 
 SELECT location, date, total_cases, total_deaths, (total_deaths*1.0/total_cases*1.0)*100 AS DeathPercentage
 FROM PortfolioProject..CovidDeaths
